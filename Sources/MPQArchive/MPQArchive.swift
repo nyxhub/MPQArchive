@@ -243,7 +243,7 @@ public final class MPQArchive {
             }
             
             if MPQArchive.logOptions.contains(.debug) { print("\nExtracting list file ...\n") }
-            if let listFile = readFile(filename: "(listfile)") as? [Int8] {
+            if let listFile = readFile(filename: "(listfile)") as? [UInt8] {
                 fileNames = String(cString: listFile).components(separatedBy: "\r\n")
                 
                 if MPQArchive.logOptions.contains(.fileList) {
@@ -275,7 +275,7 @@ public final class MPQArchive {
     }
     
     @discardableResult
-    public func extractFile(filename: String, writeToDisk: Bool) throws -> [Int8]? {
+    public func extractFile(filename: String, writeToDisk: Bool) throws -> [UInt8]? {
         guard let fileURL = fileURL else {
             throw MPQArchiveError.noFileProvided
         }
@@ -287,12 +287,12 @@ public final class MPQArchive {
             }
         }
         
-        guard let fileData = readFile(filename: filename) as? [Int8] else {
+        guard let fileData = readFile(filename: filename) as? [UInt8] else {
             return nil
         }
         if writeToDisk {
             if let file = fopen(filename, "wb") {
-                fwrite(fileData, MemoryLayout<Int8>.size, fileData.count, file)
+                fwrite(fileData, MemoryLayout<UInt8>.size, fileData.count, file)
                 fclose(file)
             }
         }
@@ -402,8 +402,8 @@ public final class MPQArchive {
         switch compressionType {
         case .uncompressed:
             fseek(mpqFile, offset, SEEK_SET)
-            var fileData = [Int8](repeating: 0, count: Int(uncompressedSize))
-            let readBytes = fread(&fileData, MemoryLayout<Int8>.size, Int(compressedSize), mpqFile)
+            var fileData = [UInt8](repeating: 0, count: Int(uncompressedSize))
+            let readBytes = fread(&fileData, MemoryLayout<UInt8>.size, Int(compressedSize), mpqFile)
             
             return (data: fileData, success: readBytes > 0, errorCode: 1) // No compression
         case .zlib:
@@ -418,13 +418,17 @@ public final class MPQArchive {
             
             return (data: decompressedData, success: result == Z_OK && readBytes > 0, errorCode: result)
         case .bz2:
-            var decompressedData = [Int8](repeating: 0, count: Int(uncompressedSize))
+            var decompressedDataSigned = [Int8](repeating: 0, count: Int(uncompressedSize))
             var uncompressedSize = uncompressedSize
-            var compressedData = [Int8](repeating: 0, count: Int(compressedSize))
+            var compressedData = [UInt8](repeating: 0, count: Int(compressedSize))
             
             fseek(mpqFile, offset + 1, SEEK_SET)
             let readBytes = fread(&compressedData, MemoryLayout<UInt8>.size, Int(compressedSize), mpqFile)
-            let result = BZ2_bzBuffToBuffDecompress(&decompressedData, &uncompressedSize, &compressedData, compressedSize, 0, 0)
+            
+            var compressedDataSigned = unsafeBitCast(compressedData, to: [Int8].self)
+            let result = BZ2_bzBuffToBuffDecompress(&decompressedDataSigned, &uncompressedSize, &compressedDataSigned, compressedSize, 0, 0)
+            
+            let decompressedData = unsafeBitCast(decompressedDataSigned, to: [UInt8].self)
             
             return (data: decompressedData, success: result == BZ_OK && readBytes > 0, errorCode: result)
         }
@@ -480,8 +484,8 @@ public final class MPQArchive {
                 if (blockEntry.flags & MPQFileFlags.compress != 0) && (forceDecompress || blockEntry.size > blockEntry.archivedSize) {
                     // Single unit files only need to be decompressed, but compression only happens when at least one byte is gained.
                     
-                    var fileData = [Int8](repeating: 0, count: Int(blockEntry.archivedSize))
-                    fread(&fileData, MemoryLayout<Int8>.size, Int(blockEntry.archivedSize), mpqFile)
+                    var fileData = [UInt8](repeating: 0, count: Int(blockEntry.archivedSize))
+                    fread(&fileData, MemoryLayout<UInt8>.size, Int(blockEntry.archivedSize), mpqFile)
                     
                     if MPQArchive.logOptions.contains(.debug) {
                         print(filename.padding(toLength: 25, withPad: " ", startingAt: 0) + " " +
@@ -513,8 +517,8 @@ public final class MPQArchive {
                     return result.data
                 } else {
                     // even though file is marked as compressed, the compression gain is 0 so return the whole file
-                    var fileData = [Int8](repeating: 0, count: Int(blockEntry.archivedSize))
-                    fread(&fileData, MemoryLayout<Int8>.size, Int(blockEntry.archivedSize), mpqFile)
+                    var fileData = [UInt8](repeating: 0, count: Int(blockEntry.archivedSize))
+                    fread(&fileData, MemoryLayout<UInt8>.size, Int(blockEntry.archivedSize), mpqFile)
                     
                     return fileData
                 }

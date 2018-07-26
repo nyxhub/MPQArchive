@@ -81,6 +81,16 @@ print("SwiftMPQ v1.0")
 
 if args.count == 0 {
     printUsage()
+
+    let replayURL = URL(fileURLWithPath: "/Users/gabriel/Work/Personal/MPQSwift/heroprotocol-master/Infernal Shrines (60).StormReplay")
+    do {
+        let mpqArchive = try MPQArchive(fileURL: replayURL)
+
+        let bytes = try? mpqArchive.extractFile(filename: "replay.details", writeToDisk: false)
+        print(bytes)
+    } catch (let error) {
+        print("Error while reading file: \(error)")
+    }
 } else {
     var usedArgs = Set<String>()
     for option in args {
