@@ -154,6 +154,7 @@ public enum MPQArchiveError: Error {
     case notAnMPQFile
     case noFileProvided
     case fileAlreadyLoaded
+    case unableToExtractFile
 }
 
 private typealias DecompressionResult = (data: [Any], success: Bool, errorCode: Int32)
@@ -175,8 +176,9 @@ public final class MPQArchive {
     
     private var mpqFile: UnsafeMutablePointer<FILE>? =  nil
     
-    private var header = MPQHeader()
-    private var userDataHeader = MPQUserDataHeader()
+    public var header = MPQHeader()
+    public var userDataHeader = MPQUserDataHeader()
+    public var userDataHeaderContents: [UInt8] = []
     
     private var hashTable = [MPQHashTableEntry]()
     private var blockTable = [MPQBlockTableEntry]()
@@ -275,7 +277,7 @@ public final class MPQArchive {
     }
     
     @discardableResult
-    public func extractFile(filename: String, writeToDisk: Bool) throws -> [UInt8]? {
+    public func extractFile(filename: String, writeToDisk: Bool) throws -> [UInt8] {
         guard let fileURL = fileURL else {
             throw MPQArchiveError.noFileProvided
         }
@@ -288,7 +290,7 @@ public final class MPQArchive {
         }
         
         guard let fileData = readFile(filename: filename) as? [UInt8] else {
-            return nil
+            throw MPQArchiveError.unableToExtractFile
         }
         if writeToDisk {
             if let file = fopen(filename, "wb") {
@@ -347,7 +349,8 @@ public final class MPQArchive {
     
     private func readUserDataHeader() {
         fread(&userDataHeader, MemoryLayout<MPQUserDataHeader>.size, 1, mpqFile)
-        
+        userDataHeaderContents = [UInt8](repeating: 0, count: Int(userDataHeader.mpqUserDataHeaderSize))
+        fread(&userDataHeaderContents, Int(userDataHeader.mpqUserDataHeaderSize), 1, mpqFile)
         if MPQArchive.logOptions.contains(.userDataHeader) {
             print("\nMPQ user data header\n-----------------------\n\(userDataHeader)")
         }
