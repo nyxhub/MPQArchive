@@ -62,7 +62,7 @@ let arguments = [fileArg, showHeadersArg, hashTableArg, blockTableArg, listFileA
 func printUsage() {
     print("Extracts files from an MPQ archive")
     
-    var usage = "\nusage: swiftmpq "
+    var usage = "\n\u{001B}[0;37musage: swiftmpq "
     
     for argument in arguments {
         usage += "\(argument.isInput ? "" : "[")\(argument.short)\(argument.isInput ? "" : "]") "
@@ -77,10 +77,11 @@ func printUsage() {
 
 var filePath = ""
 let args = [String](CommandLine.arguments[1 ..< CommandLine.arguments.count])
-print("SwiftMPQ v1.0")
+print("\u{001B}[1;37mSwiftMPQ v1.0")
 
 if args.count == 0 {
     printUsage()
+    exit(0)
 } else {
     var usedArgs = Set<String>()
     for option in args {
