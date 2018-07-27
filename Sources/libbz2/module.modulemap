@@ -1,5 +1,5 @@
 module libbz2 [system] {
-    header "/Users/gabriel/Work/Personal/SwiftHeroProtocol/bzip2-1.0.6/bzlib.h"
+    header "../../../bzip2/bzlib.h"
     link "bz2"
     export *
 }

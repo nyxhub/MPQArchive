@@ -60,9 +60,9 @@ let fileArg = CommandLineArgument(short: "file", long: "", usage: "File to load"
 let arguments = [fileArg, showHeadersArg, hashTableArg, blockTableArg, listFileArg, extractFilesArg]
 
 func printUsage() {
-    print("Extracts files from an MPQ archive")
+    print("\u{001B}[1;37mExtracts files from an MPQ archive\u{001B}[0;37m")
     
-    var usage = "\n\u{001B}[0;37musage: swiftmpq "
+    var usage = "\nusage: swiftmpq "
     
     for argument in arguments {
         usage += "\(argument.isInput ? "" : "[")\(argument.short)\(argument.isInput ? "" : "]") "
@@ -77,7 +77,7 @@ func printUsage() {
 
 var filePath = ""
 let args = [String](CommandLine.arguments[1 ..< CommandLine.arguments.count])
-print("\u{001B}[1;37mSwiftMPQ v1.0")
+print("\u{001B}[1;37mSwiftMPQ v1.0\u{001B}[0;37m")
 
 if args.count == 0 {
     printUsage()
