@@ -18,10 +18,22 @@ Swift MPQArchive replicates the full functionality of the mpyq executable and li
 
 # Instalation
 
+## Standalone
+
 * Clone the repository locally
 * Ensure you have installed a Swift 4.2 toolchain that can read Package manifests containing system libraries and all other Requirements are installed and available on disk
 * modify the path to the libbz2 headers in the libbz2 modulemap file
 * run `swift build` in the clone folder or if you want to open and build the project in Xcode, `swift package generate-xcodeproj`
+
+## As a library using Swift Package Manager
+
+Add this dependency in your package description
+
+```swift
+  .package(url: "git@github.com:gabrielnica/MPQArchive.git", from: "1.0.0")
+```
+
+
 
 # MPQArchive Usage
 
