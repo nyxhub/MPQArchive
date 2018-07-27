@@ -2,18 +2,12 @@
 
 Swift MPQArchive is a cross platform native Swift port of the mpyq tool used in Blizzard Entertainment's
 heroprotocol python library for extracting component files of a Heroes of the Storm
-replay file and decoding them. It comes in the form of an executables which can be used as is,
-**swiftmpq** (the equivalent of **mpyq** python script) and a library, **MPQArchive**, which can be dynamically linked and used in software that needs to manipulate small MPQ archives, such as Starcraft 2 and Heroes of the Storm replay files
-
-Swift MPQArchive replicates the full functionality of mpyq executable and library. The executable has the same interface and command line parameters as its python equivalent.
-
-## MPQArchive framework
-
-Is a complete swift port of the python **mpyq** library. It can extract all or specific files contained in
-an MPQ archive both to disk or in memory. While faster than the python version it is a direct port and has
+replay file. It can extract all or specific files contained in an MPQ archive both to disk or in memory. It comes in the form of an executable which can be used as is,
+**swiftmpq** (the equivalent of **mpyq** python script) and a library, **MPQArchive**, which can be dynamically linked and used in software that needs to manipulate small MPQ archives, such as Starcraft 2 and Heroes of the Storm replay files. While faster than the python version it is a direct port and has
 the same limitation - It shouldn't be used to extract large files so its use case should be limited to replay
-files from starcraft 2 or heroes of the storm or otherwise small archives
+files or otherwise small archives
 
+Swift MPQArchive replicates the full functionality of the mpyq executable and library. The executable has the same interface and command line parameters as its python equivalent.
 
 # Requirements
 
@@ -37,9 +31,11 @@ To unarchive in memory:
 let replayFileURL = URL(fileURLWithPath: "/Users/..../Infernal Shrines (60).StormReplay")
 do {
     let archive = try MPQArchive(fileURL: replayFileURL)
-    // by now the file is already loaded and MPQArchive extracted the file list. if you don't want to that
-    // and load the archive later
+
+    // by now the file is already loaded and MPQArchive extracted the file list.
+    // If you don't want to do that and load the archive later
     // use let archive = MPQArchive(); [...] try archive.load(fileURL: replayFileURL)
+
     let data = try archive.extractFile(filename: "replay.message.events", writeToDisk: false)
 } catch {
     print("Error while reading file: \(error)")
