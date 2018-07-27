@@ -19,22 +19,34 @@ import Foundation
 
 public extension String {
     public func leftPadding(toLength: Int, withPad character: Character) -> String {
-        let newLength = self.characters.count
+        let newLength = self.count
         if newLength < toLength {
             return String(repeatElement(character, count: toLength - newLength)) + self
         } else {
-            return self.substring(from: index(self.startIndex, offsetBy: newLength - toLength))
+            let startIndex = index(self.startIndex, offsetBy: newLength - toLength)
+            return String(self[startIndex...])
         }
     }
 }
 
-public extension Character
-{
-    public func unicodeScalarCodePoint() -> UInt32
-    {
+public extension Character {
+    public func unicodeScalarCodePoint() -> UInt32 {
         let characterString = String(self)
         let scalars = characterString.unicodeScalars
         
         return scalars[scalars.startIndex].value
     }
+    
+    var ascii: UInt32? {
+        return String(self).ascii.first
+    }
+}
+
+extension StringProtocol {
+    var ascii: [UInt32] {
+        return unicodeScalars.compactMap { $0.isASCII ? $0.value : nil }
+    }
+}
+extension Character {
+    
 }

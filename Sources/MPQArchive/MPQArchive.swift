@@ -195,6 +195,10 @@ public final class MPQArchive {
     
     private var encryptionTable: [UInt32]
     
+    public var extractLocation: URL?
+    private var defaultExtractLocation: URL {
+       return URL(fileURLWithPath: FileManager.default.currentDirectoryPath)
+    }
     
     public init(fileURL: URL) throws {
         encryptionTable = MPQArchive.prepareEncryptionTable()
@@ -293,7 +297,11 @@ public final class MPQArchive {
             throw MPQArchiveError.unableToExtractFile
         }
         if writeToDisk {
-            if let file = fopen(filename, "wb") {
+            if extractLocation == nil {
+                extractLocation = defaultExtractLocation
+            }
+            let diskFileName = extractLocation!.appendingPathComponent(filename).path
+            if let file = fopen(diskFileName, "wb") {
                 fwrite(fileData, MemoryLayout<UInt8>.size, fileData.count, file)
                 fclose(file)
             }
@@ -304,7 +312,8 @@ public final class MPQArchive {
         return fileData
     }
     
-    public func extractFiles(toDisk: Bool) throws {
+    @discardableResult
+    public func extractFiles(toDisk: Bool) throws -> [String: [UInt8]] {
         if MPQArchive.logOptions.contains(.debug) {
             print("\nExtracting files ...\n")
             print("Name                      ArchSize       Type Comp     RealSize   Status")
@@ -322,24 +331,30 @@ public final class MPQArchive {
             }
         }
         
+        var retVal: [String: [UInt8]] = [:]
         for filename in fileNames {
             if filename != "" {
-                try extractFile(filename: filename, writeToDisk: toDisk)
+                let data = try extractFile(filename: filename, writeToDisk: toDisk)
+                if toDisk {
+                    retVal[filename] = data
+                }
             }
         }
         
         fclose(mpqFile)
         mpqFile = nil
+        
+        return retVal
     }
     
     private func printFiles() {
         print("\nFiles\n-----")
-        if let longestString = fileNames.max(by: {$1.characters.count > $0.characters.count}) {
+        if let longestString = fileNames.max(by: {$1.count > $0.count}) {
             for filename in fileNames {
                 if filename != "" {
                     if let hashEntry = getHashTableEntry(filename: filename) {
                         let blockEntry = blockTable[Int(hashEntry.blockTableIndex)]
-                        print(filename.padding(toLength: longestString.characters.count, withPad: " ", startingAt: 0) +
+                        print(filename.padding(toLength: longestString.count, withPad: " ", startingAt: 0) +
                             " \(blockEntry.size)".leftPadding(toLength: 9, withPad: " ") + " bytes")
                     }
                 }
@@ -566,13 +581,13 @@ public final class MPQArchive {
         var seed1: UInt32 = 0x7FED7FED
         var seed2: UInt32 = 0xEEEEEEEE
         
-        for character in string.uppercased().characters {
-            let codePoint = character.unicodeScalarCodePoint()
-            let value = encryptionTable[Int(type.rawValue << 8 + codePoint)]
-            
-            seed1 = UInt32((UInt64(value) ^ (UInt64(seed1) + UInt64(seed2))) & 0xFFFFFFFF)
-            seed2 = UInt32(truncatingIfNeeded: UInt64(codePoint) + UInt64(seed1) + UInt64(seed2) + (UInt64(seed2) << 5) + 3 & 0xFFFFFFFF)
-            
+        for character in string.uppercased() where character.ascii != nil {
+            if let ord = character.ascii {
+                let value = encryptionTable[Int(type.rawValue << 8 + ord)]
+                
+                seed1 = UInt32((UInt64(value) ^ (UInt64(seed1) + UInt64(seed2))) & 0xFFFFFFFF)
+                seed2 = UInt32(truncatingIfNeeded: UInt64(ord) + UInt64(seed1) + UInt64(seed2) + (UInt64(seed2) << 5) + 3 & 0xFFFFFFFF)
+            }
         }
         
         return seed1
