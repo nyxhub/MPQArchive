@@ -1,5 +1,5 @@
 module libbz2 [system] {
-    header "../../../bzip2/bzlib.h"
+    header "/usr/local/Cellar/bzip2/1.0.6_1/include/bzlib.h"
     link "bz2"
     export *
 }
