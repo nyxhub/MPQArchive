@@ -18,7 +18,7 @@
 import Foundation
 
 public extension String {
-    public func leftPadding(toLength: Int, withPad character: Character) -> String {
+    func leftPadding(toLength: Int, withPad character: Character) -> String {
         let newLength = self.count
         if newLength < toLength {
             return String(repeatElement(character, count: toLength - newLength)) + self
@@ -30,7 +30,7 @@ public extension String {
 }
 
 public extension Character {
-    public func unicodeScalarCodePoint() -> UInt32 {
+    func unicodeScalarCodePoint() -> UInt32 {
         let characterString = String(self)
         let scalars = characterString.unicodeScalars
         
