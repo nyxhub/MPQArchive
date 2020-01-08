@@ -11,7 +11,7 @@ Swift MPQArchive replicates the full functionality of the mpyq executable and li
 
 # Requirements
 
-* Xcode 10+
+* Xcode 11
 * Swift 5.1 Toolchain
 * ZLib C library
 * BZip2 1.0.6 library installed with homebrew. Ensure that BZip2 is installed in `/usr/local/Cellar/bzip2/1.0.6_1`. If installed in different location you must modify the modulemap for bzip2
